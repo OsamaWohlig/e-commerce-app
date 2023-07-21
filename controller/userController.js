@@ -53,6 +53,15 @@ const userController = {
         } catch (error) {
             res.send(error.message)
         }
+    },
+    async getCurrentUser(req,res){
+        try {
+            const response = await User.findOne({_id:req.params.id})
+            if(!response)return res.status(404).json(response)
+            return res.status(200).json(response)
+        } catch (error) {
+            res.status(500).json({message:error.message})
+        }
     }
 }
 

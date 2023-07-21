@@ -28,6 +28,15 @@ const orderController = {
         } catch (error) {
             res.status(500).json({error:error.message})
         }
+    },
+    async getOrder(req,res){
+        try {
+            const response = await Order.findOne({_id:req.params.orderId})
+            if(!response)return res.status(404).json(response)
+            return res.status(200).json(response)
+        } catch (error) {
+            res.status(500).json({message:error.message})
+        }
     }
 }
 
