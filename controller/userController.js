@@ -1,10 +1,14 @@
+const jwt = require('jsonwebtoken')
 const User = require('../model/userModel')
 const {inDB} = require('../utils/checkDb')
+const bcrypt = require('bcrypt')
 
 const userController = {
     async createUser(req,res){
-        const userData = new User(req.body)
-         try {
+        try {
+            const {userName,email,password} = req.body
+            const hashedPassword = await bcrypt.hash(password,10)
+            const userData = new User({userName,email,password:hashedPassword})
             const response = await userData.save()
             if(!response)return res.send('try again')
             return res.send('User created successfully')
@@ -57,10 +61,24 @@ const userController = {
     async getCurrentUser(req,res){
         try {
             const response = await User.findOne({_id:req.params.id})
+            const token = jwt.sign(response.userName, process.env.MY_SECRET_KEY)
             if(!response)return res.status(404).json(response)
-            return res.status(200).json(response)
+            return res.status(200).json({response,token})
         } catch (error) {
             res.status(500).json({message:error.message})
+        }
+    },
+    async login(req,res){
+        try {
+            const {email,password} = req.body
+            const emailExists = await User.findOne({email})
+            if(!emailExists)return res.status(200).json({message:"User not found"})
+            const isAuthenticated = await bcrypt.compare(password, emailExists.password)
+            if(!isAuthenticated)return res.status(200).json({message:'Incorrect password'})
+            const token = jwt.sign(emailExists.userName,process.env.MY_SECRET_KEY)
+            res.status(200).json({'message':'Logged in successfuly',token})
+        } catch (error) {
+            res.send(error.message)
         }
     }
 }

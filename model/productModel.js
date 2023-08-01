@@ -5,6 +5,10 @@ const productSchema = {
         type:String,
         required:true
     },
+    productImage:{
+        contentType:String,
+        data:Buffer,
+    },
     productDescription:{
         type:String,
         required:true

@@ -2,6 +2,10 @@ const Product = require('../model/productModel')
 const {inDB} = require('../utils/checkDb')
 
 const productController = {
+    async uploadImage(file){
+
+    },
+
     async getProducts(req,res){
         try {
             const products  = await Product.find({isActive: true})
@@ -30,6 +34,7 @@ const productController = {
     async addProduct(req,res){
         try {
             const product = new Product(req.body)
+            console.log(req.body.productImage)
             const response = await product.save()
             if(!response)return res.send(response)
             return res.status(200).json({
