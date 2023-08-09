@@ -3,20 +3,18 @@ const app = express()
 require('dotenv').config()
 const mongoose = require('mongoose')
 const cors = require('cors')
-const bodyParser = require('body-parser')
 const multer = require('multer')
+const cron = require('node-cron')
 
 app.use(cors())
-app.use(express.json())
-app.use(multer().any())
+app.set('view engine', 'ejs')
+app.use(express.json({limit:'5mb'}))
 // app.use(bodyParser.raw({limit:'100mb'}))
 
-const { initializeApp } = require('firebase/app')
+// cron.schedule('*/1 * * * * *',()=>console.log('test'))
+
 const { productRoute,userRoute,cartRoute,orderRoute } = require('./route')
 const { userAuth } = require('./middleware/auth');
-const firebaseConfig = require('./config/firebaseConfig')
-
-const firebaseApp = initializeApp(firebaseConfig);
 
 app.use('/api/product/',productRoute)
 app.use('/api/user/',userRoute)

@@ -2,8 +2,32 @@ const jwt = require('jsonwebtoken')
 const User = require('../model/userModel')
 const {inDB} = require('../utils/checkDb')
 const bcrypt = require('bcrypt')
+const ejs = require('ejs')
+const path = require('path')
+const nodemailer = require('nodemailer')
+
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'osamap4026@gmail.com',
+      pass: process.env.GMAIL_KEY
+    }
+  });
 
 const userController = {
+    async confirmEmail(req,res){
+        try {
+            const inDb = await User.findOne({email:req.params.email})
+            if(!inDb)return res.json({message:'user not found'})
+            const response = await User.findOneAndUpdate({email:req.params.email},{$set:{isVerified:true}},{new:true})
+            if(!response)return res.json({message:'Some error occured'})
+            return res.json({message:'Account Verified Succcessfully'})
+        } catch (error) {
+            return res.json({error})
+        }
+    },
     async createUser(req,res){
         try {
             const {userName,email,password} = req.body
@@ -11,6 +35,17 @@ const userController = {
             const userData = new User({userName,email,password:hashedPassword})
             const response = await userData.save()
             if(!response)return res.send('try again')
+
+            const result = await ejs.renderFile(path.join(__dirname,'../views/welcomeMail.ejs'), {userName,email})
+            if(!result)return res.send('try again')
+            const info = await transporter.sendMail({
+                from: 'osamap4026@gmail.com',
+                to: email,
+                subject: "Welcome",
+                text: "Hello", 
+                html: result,
+            });
+            console.log(info)
             return res.send('User created successfully')
          } catch (error) {
             res.send(error.message)
@@ -63,7 +98,8 @@ const userController = {
             const response = await User.findOne({_id:req.params.id})
             const token = jwt.sign(response.userName, process.env.MY_SECRET_KEY)
             if(!response)return res.status(404).json(response)
-            return res.status(200).json({response,token})
+            // return res.status(200).json({response,token})
+            res.render('../templates/welcomeMail.ejs')
         } catch (error) {
             res.status(500).json({message:error.message})
         }

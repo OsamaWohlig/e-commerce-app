@@ -16,6 +16,10 @@ const userSchema = {
     isActive:{
         type:Boolean,
         default:true
+    },
+    isVerified:{
+        type:Boolean,
+        default:false
     }
 }
 
